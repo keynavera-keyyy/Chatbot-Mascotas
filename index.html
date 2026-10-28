@@ -15,6 +15,7 @@
   .msg { margin: 6px 0; padding: 8px 12px; border-radius: 10px; max-width: 85%;
          white-space: pre-line; font-size: 15px; line-height: 1.4; }
   .bot { background: #eee; color: #222; }
+  .msg a { color: #e0661c; overflow-wrap: anywhere; }
   .user { background: #f28c28; color: white; margin-left: auto; }
   #botones { padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid #eee; }
   #botones button { border: 1px solid #f28c28; background: white; color: #f28c28;
@@ -153,8 +154,8 @@
     [["adopt", "solicitud", "compatib"],
      "🏡 ADOPTAR\n\n" +
      "1. Mira las mascotas disponibles en Adopta Amigos.\n" +
-     "2. Haz el Test de compatibilidad para ver cuál va contigo: https://adoptabc.bajawebsolutions.com/test-compatibilidad\n" +
-     "3. Llena la solicitud de adopción: https://adoptabc.bajawebsolutions.com/solicitud-adopcion"],
+     "2. Haz el Test de compatibilidad para ver cuál va contigo:\nhttps://adoptabc.bajawebsolutions.com/test-compatibilidad\n" +
+     "3. Llena la solicitud de adopción:\nhttps://adoptabc.bajawebsolutions.com/solicitud-adopcion"],
 
     [["gracias"],
      "¡De nada! Si tienes otra duda sobre tu mascota, aquí estoy 🐾"],
@@ -179,7 +180,18 @@
   function agregar(texto, clase) {
     const div = document.createElement("div");
     div.className = "msg " + clase;
-    div.textContent = texto;
+    // separa el texto y convierte las URLs en enlaces
+    for (const parte of texto.split(/(https?:\/\/\S+)/)) {
+      if (parte.startsWith("http")) {
+        const a = document.createElement("a");
+        a.href = parte;
+        a.textContent = parte;
+        a.target = "_blank";
+        div.appendChild(a);
+      } else {
+        div.appendChild(document.createTextNode(parte));
+      }
+    }
     mensajes.appendChild(div);
     mensajes.scrollTop = mensajes.scrollHeight;
   }
