@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistente Bienestar Animal</title>
+<style>
+  body { margin: 0; font-family: Arial, sans-serif; background: #fff5ec;
+         display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  #chat { width: 100%; max-width: 500px; height: 90vh; background: white; border-radius: 12px;
+          display: flex; flex-direction: column; box-shadow: 0 4px 16px rgba(0,0,0,0.2); overflow: hidden; }
+  #titulo { background: #f28c28; color: white; padding: 14px; font-weight: bold; font-size: 18px; }
+  #titulo a { color: white; float: right; font-size: 14px; font-weight: normal; }
+  #mensajes { flex: 1; overflow-y: auto; padding: 12px; background: #fafafa; }
+  .msg { margin: 6px 0; padding: 8px 12px; border-radius: 10px; max-width: 85%;
+         white-space: pre-line; font-size: 15px; line-height: 1.4; }
+  .bot { background: #eee; color: #222; }
+  .user { background: #f28c28; color: white; margin-left: auto; }
+  #botones { padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid #eee; }
+  #botones button { border: 1px solid #f28c28; background: white; color: #f28c28;
+                    border-radius: 14px; padding: 4px 10px; cursor: pointer; font-size: 13px; }
+  form { display: flex; border-top: 1px solid #ddd; }
+  input { flex: 1; border: none; padding: 12px; font-size: 15px; outline: none; }
+  form button { border: none; background: #f28c28; color: white; padding: 0 18px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="chat">
+  <div id="titulo">🐾 Bienestar Animal <a href="https://adoptabc.bajawebsolutions.com/">← Volver</a></div>
+  <div id="mensajes"></div>
+  <div id="botones"></div>
+  <form id="form">
+    <input id="input" placeholder="Escribe tu pregunta..." autocomplete="off">
+    <button>Enviar</button>
+  </form>
+</div>
+
+<script>
+  const respuestas = [
+    [["comida", "alimento", "alimentacion", "alimentación", "comer", "croqueta", "dieta"],
+     "🍖 ALIMENTACIÓN\n\n" +
+     "¿Cómo debe ser la alimentación ideal?\n" +
+     "Balanceada, con proteínas, grasas, carbohidratos y verduras adecuadas, según su raza, tamaño y actividad física.\n" +
+     "• 0 a 6 semanas: leche materna, por nutrientes y por comportamiento.\n" +
+     "• 6 semanas a 1 año: alimento especial para crecimiento, con más calorías.\n" +
+     "• 1 año en adelante: alimento que lo mantenga en un peso adecuado según su estilo de vida.\n" +
+     "• Gatos: alimento seco y húmedo para gatito, adulto o senior.\n\n" +
+     "¿Cada cuánto debe comer?\n" +
+     "• Cachorros: 3 a 4 veces al día (cada 3-4 horas). Recién nacidos, cada que lo pidan.\n" +
+     "• Adultos: 2 veces al día (de 1 a 3 según raza y actividad).\n" +
+     "• Gatos: acceso libre, de preferencia 2 a 3 veces, cuidando que no engorden.\n" +
+     "Respeta los gramos que indica el paquete y repártelos durante el día.\n\n" +
+     "¿Qué cambia entre un perro adulto y uno mayor?\n" +
+     "El adulto necesita proteína para tener energía y mantener sus músculos. El mayor necesita menos calorías, comida más blanda (mezcla de húmeda y croquetas) y que ayude a sus articulaciones.\n\n" +
+     "Problemas de una mala alimentación:\n" +
+     "Obesidad o bajo peso, desnutrición, anemia, problemas digestivos, de piel, urinarios, de riñones e incluso del corazón."],
+
+    [["agua", "hidrat", "plato", "bebe", "beber", "tomar"],
+     "💧 AGUA\n\n" +
+     "¿Cómo saber si está bien hidratado?\n" +
+     "• Dale acceso a agua limpia las 24 horas (de garrafón) y complementa con alimento húmedo.\n" +
+     "• Jala suavemente su piel: si regresa de inmediato, está bien hidratado.\n" +
+     "• Si la piel de su nariz está muy seca, puede estar deshidratado.\n\n" +
+     "¿Cada cuánto cambiar el agua?\n" +
+     "Todos los días, porque su saliva deja bacterias en el plato.\n\n" +
+     "¿Cómo limpiar sus platos?\n" +
+     "• Lávalos diario (o cada que come) con jabón y enjuágalos muy bien para que no queden residuos.\n" +
+     "• Es mejor usar platos de metal o cerámica.\n" +
+     "• También se puede usar clorhexidina, que no le hace daño.\n" +
+     "• Sobre el cloro no coincidieron: unos dicen que no se use y otros que sí, siempre que se enjuague perfecto. Lo más seguro es el jabón."],
+
+    [["paseo", "pasear", "caminar", "camina", "correa", "collar", "arnes", "arnés", "ejercicio", "jala"],
+     "🦮 PASEOS\n\n" +
+     "¿Por qué son importantes?\n" +
+     "Mantienen su salud física y emocional, previenen obesidad y enfermedades, reducen el estrés, le ayudan a liberar energía, a conocer su alrededor, a socializar y a acostumbrarse a la correa.\n\n" +
+     "¿Cada cuánto y cuánto tiempo?\n" +
+     "• Diario, mínimo 20 a 40 minutos (o dos paseos de 15 minutos). Algunos recomiendan hasta 1 hora.\n" +
+     "• Perros mayores o con problemas en articulaciones: caminatas cortas.\n\n" +
+     "¿A qué hora?\n" +
+     "• Temprano en la mañana o en la noche, para evitar el calor y que el piso caliente le queme las patas.\n" +
+     "• En lugares con pocos carros y poca gente.\n" +
+     "• Nunca justo después de comer.\n\n" +
+     "¿Qué pasa si no lo sacas?\n" +
+     "Ansiedad, estrés y obesidad. Razas con mucha energía (husky, pastor, schnauzer) pueden volverse ansiosas, destructivas o agresivas.\n\n" +
+     "¿Qué collar o arnés usar si jala?\n" +
+     "• Depende de cada perro. No uses collares de púas porque lo lastiman.\n" +
+     "• Para perros con mucha fuerza, los de piel o cadena son los más resistentes.\n" +
+     "• Siempre debe traer collar con placa con sus datos.\n" +
+     "• Para gatos hay collares que se desabrochan si se atoran."],
+
+    [["vacuna", "rabia", "parvo", "moquillo", "desparasit", "parasito", "parásito", "pulga", "garrapata", "lombri"],
+     "💉 VACUNAS Y DESPARASITACIÓN\n\n" +
+     "Vacuna obligatoria:\n" +
+     "Rabia, cada año (la pide el gobierno).\n\n" +
+     "Perros (hasta 8 enfermedades):\n" +
+     "Parvovirus, moquillo, hepatitis, parainfluenza, leptospirosis, bordetella, coronavirus y rabia, con refuerzos el primer año.\n\n" +
+     "Gatos (hasta 5 enfermedades):\n" +
+     "Triple o cuádruple felina (panleucopenia, rinotraqueitis) y rabia. Opcional: leucemia felina, que solo se aplica después de una prueba de sangre.\n\n" +
+     "¿Cada cuánto desparasitar?\n" +
+     "• Interna: cada 3 a 4 meses (según dónde viva, puede ser desde cada mes y medio hasta cada 6 meses).\n" +
+     "• Externa (pulgas y garrapatas): según la duración del producto, de 1 a 6 meses.\n" +
+     "• La giardia es muy común y difícil de eliminar.\n\n" +
+     "Si no se desparasita:\n" +
+     "Puede tener hinchazón fuerte del abdomen, enfermedades que transmiten las garrapatas como la rickettsiosis, e incluso morir.\n\n" +
+     "¿Afecta a las personas?\n" +
+     "Sí. Pulgas, garrapatas y lombrices se pueden pasar a los humanos y causar problemas digestivos, alergias y las mismas enfermedades que al animal."],
+
+    [["veterinario", "doctor", "revision", "revisión", "consulta", "enfermo", "chequeo", "medicina", "medicamento", "pastilla", "ibuprofeno", "paracetamol", "aspirina"],
+     "🩺 ATENCIÓN VETERINARIA\n\n" +
+     "Revisiones en cada etapa:\n" +
+     "• Desde las 6 semanas, para empezar su calendario de vacunas.\n" +
+     "• Desparasitación cada 4 meses y control de pulgas y garrapatas.\n" +
+     "• Vacunas cada año.\n" +
+     "• Adultos: exámenes de sangre.\n" +
+     "• Gatos: vacunas, desparasitación, control de pulgas, garrapatas y ácaros, y pruebas de sida y leucemia felina. Lo ideal es no dejarlos salir a la calle para evitar contagios.\n\n" +
+     "¿Cada cuánto llevarlo?\n" +
+     "• Desde el primer mes de vida.\n" +
+     "• Si está sano, cada 6 meses o una vez al año.\n" +
+     "• Mayores de 5 años: control mínimo cada año.\n" +
+     "• Siempre que notes un cambio en su comportamiento o en su cuerpo.\n\n" +
+     "⚠️ Medicinas de humanos que son tóxicas o mortales:\n" +
+     "Paracetamol, ibuprofeno, aspirina, naproxeno, tramadol y alprazolam. No le des ninguna medicina de humanos sin indicación del veterinario."],
+
+    [["esteriliz", "castrar", "castracion", "castración", "operar", "operacion", "operación", "celo"],
+     "✂️ ESTERILIZACIÓN\n\n" +
+     "Beneficios:\n" +
+     "• Evita camadas no deseadas y el abandono en la calle.\n" +
+     "• No hay celo ni embarazos, y mejora su calidad de vida.\n" +
+     "• Machos: evita cáncer testicular y las ganas de marcar todo.\n" +
+     "• Hembras: evita cáncer de mama y de matriz.\n" +
+     "• Previene tumores como el TVT.\n" +
+     "• Gatos: baja el riesgo de sida felino y leucemia felina.\n\n" +
+     "¿A qué edad?\n" +
+     "Los entrevistados no coinciden: desde los 3 meses (antes del primer celo), a partir de los 4 o 5 meses, o hasta el año según la raza. Lo mejor es que lo decida el veterinario.\n\n" +
+     "Cuidados después de la operación:\n" +
+     "• Reposo y tomar líquidos.\n" +
+     "• Que no se lama la herida: usar collar isabelino mínimo 7 días.\n" +
+     "• Mantener la herida limpia y estar en un lugar limpio y seco de 6 a 8 días.\n" +
+     "• Dar el antibiótico y seguir las indicaciones del veterinario.\n" +
+     "• Los machos se recuperan en un día; las hembras necesitan reposo absoluto unos 10 días."],
+
+    [["techo", "sol", "lluvia", "frio", "frío", "calor", "casita", "afuera", "intemperie"],
+     "🏠 TECHO\n\n" +
+     "¿Por qué es importante?\n" +
+     "Lo protege del sol, la lluvia y el frío, le da seguridad y evita sufrimiento y enfermedades.\n\n" +
+     "Riesgos si vive expuesto:\n" +
+     "• Sol: insolación, golpe de calor, deshidratación, daños en la piel e incluso algunos tipos de cáncer.\n" +
+     "• Lluvia y frío: hipotermia, resfriado, pulmonía y enfermedades respiratorias.\n" +
+     "• Humedad: hongos y levaduras entre las patas y en los oídos.\n" +
+     "El riesgo también depende de su raza y color."],
+  ];
+
+  const temas = ["Alimentación", "Agua", "Paseos", "Veterinario", "Vacunas", "Esterilización", "Techo"];
+  const mensajes = document.getElementById("mensajes");
+  const input = document.getElementById("input");
+
+  function agregar(texto, clase) {
+    const div = document.createElement("div");
+    div.className = "msg " + clase;
+    div.textContent = texto;
+    mensajes.appendChild(div);
+    mensajes.scrollTop = mensajes.scrollHeight;
+  }
+
+  function responder(msg) {
+    msg = msg.toLowerCase();
+    for (const [claves, resp] of respuestas) {
+      if (claves.some(c => msg.includes(c))) return resp;
+    }
+    return "No entendí. Puedes preguntarme sobre: " + temas.join(", ");
+  }
+
+  function enviar(msg) {
+    agregar(msg, "user");
+    agregar(responder(msg), "bot");
+  }
+
+  // botones rápidos con los temas
+  for (const t of temas) {
+    const b = document.createElement("button");
+    b.textContent = t;
+    b.onclick = () => enviar(t);
+    document.getElementById("botones").appendChild(b);
+  }
+
+  document.getElementById("form").onsubmit = (e) => {
+    e.preventDefault();
+    const msg = input.value.trim();
+    if (!msg) return;
+    enviar(msg);
+    input.value = "";
+  };
+
+  agregar("¡Hola! Soy el asistente de bienestar animal 🐶🐱\nEscribe tu pregunta o toca un tema.", "bot");
+</script>
+</body>
+</html>
